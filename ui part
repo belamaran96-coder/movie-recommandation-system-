@@ -1,0 +1,83 @@
+# @title 🎬 Step 3: Launch Interactive Dashboard
+
+# --- UI Styling & Components ---
+style_layout = widgets.Layout(width='60%')
+style_label = {'description_width': '150px'}
+
+# 1. Header
+header = widgets.HTML("<h2>🍿 Advanced Movie Recommender</h2>")
+sub_header = widgets.HTML(
+    "<i>Select a mandatory genre. Optionally, type a movie name to find similar titles. "
+    "Inputs are case & space insensitive.</i><br><br>"
+)
+
+# 2. Inputs
+# Dynamic Genre List
+genre_options = ["All"] + system.get_unique_genres()
+# Remove obscure genres if needed (optional cleanup)
+if "(no genres listed)" in genre_options: genre_options.remove("(no genres listed)")
+
+dropdown_genre = widgets.Dropdown(
+    options=genre_options,
+    value='Action', # Default
+    description='<b>Select Genre (Required):</b>',
+    style=style_label,
+    layout=style_layout
+)
+
+text_movie = widgets.Text(
+    value='',
+    placeholder='e.g., Toy Story (Optional)',
+    description='<b>Enter Movie Name:</b>',
+    style=style_label,
+    layout=style_layout
+)
+
+# 3. Action Button
+btn_recommend = widgets.Button(
+    description='Get Recommendations',
+    button_style='primary', # Blue color
+    icon='search',
+    layout=widgets.Layout(width='30%', margin='20px 0px 0px 150px')
+)
+
+# 4. Output Display
+output_area = widgets.Output()
+
+# --- Event Logic ---
+def on_recommend_click(b):
+    with output_area:
+        clear_output() # Refresh screen
+        
+        user_movie = text_movie.value
+        selected_genre = dropdown_genre.value
+        
+        # Call the logic
+        try:
+            results = system.recommend(user_movie, genre_filter=selected_genre)
+            
+            # Display results nicely
+            if not results.empty:
+                # Use Pandas styling for a professional look
+                styled_results = results.style.hide(axis='index').background_gradient(cmap='Blues', subset=results.columns[-1])
+                display(styled_results)
+            else:
+                print("❌ No matches found for these criteria.")
+                
+        except Exception as e:
+            print(f"⚠️ An unexpected error occurred: {e}")
+
+# Link button to function
+btn_recommend.on_click(on_recommend_click)
+
+# Assemble Dashboard
+dashboard = widgets.VBox([
+    header, 
+    sub_header, 
+    dropdown_genre, 
+    text_movie, 
+    btn_recommend, 
+    output_area
+])
+
+display(dashboard)
