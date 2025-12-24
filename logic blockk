@@ -1,0 +1,34 @@
+# @title 🛠️ Step 1: Environment Setup & Data Ingestion
+import os
+import warnings
+import sys
+
+# Suppress annoying warnings for a cleaner output
+warnings.filterwarnings('ignore')
+
+print("⏳ Starting Project Setup...")
+
+# 1. Check if data exists, if not, download it
+if not os.path.exists('data'):
+    os.makedirs('data')
+    print("⬇️  Downloading MovieLens Dataset (Small)...")
+    # Using standard Linux commands available in Colab
+    !wget -q --show-progress https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
+    !unzip -q ml-latest-small.zip
+    !cp ml-latest-small/movies.csv data/
+    !cp ml-latest-small/ratings.csv data/
+    !rm -rf ml-latest-small ml-latest-small.zip
+    print("✅ Data successfully extracted to /data folder.")
+else:
+    print("✅ Data already exists. Skipping download.")
+
+# 2. Import core libraries
+import pandas as pd
+import numpy as np
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import ipywidgets as widgets
+from IPython.display import display, clear_output
+
+print("\n🚀 Environment Ready! Proceed to the next block.")
