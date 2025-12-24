@@ -1,0 +1,58 @@
+# @title 📊 Step 4: Evaluate System (Success Rate %)
+
+def evaluate_recommender(k=10, sample_users=50):
+    print(f"📉 Testing recommendations on {sample_users} random users...")
+    print(f"   (Checking how many of top-{k} recommendations they actually liked...)\n")
+    
+    precisions = []
+    
+    # 1. FIX: Get the list of all movie IDs safely
+    # (This works even if the previous block missed the variable)
+    all_movie_ids = system.user_movie_matrix.index.tolist()
+    
+    # 2. Get random users
+    unique_users = system.ratings['userId'].unique()
+    sample_users_ids = np.random.choice(unique_users, size=sample_users, replace=False)
+    
+    for user_id in sample_users_ids:
+        # A. Get movies this user REALLY liked (Rating >= 4.0)
+        user_history = system.ratings[system.ratings['userId'] == user_id]
+        liked_movies = set(user_history[user_history['rating'] >= 4.0]['movieId'])
+        
+        # Skip users with too little data
+        if len(liked_movies) < 5: continue 
+            
+        # B. Hide one movie they liked (to test if we can recommend it or similar ones)
+        input_movie_id = list(liked_movies)[0]
+        
+        # C. Generate Recommendations using Collaborative Logic
+        if input_movie_id in all_movie_ids:
+            idx = all_movie_ids.index(input_movie_id)
+            sim_scores = system.collab_sim[idx]
+            
+            # Top K recommendations
+            top_indices = np.argsort(sim_scores)[::-1][1:k+1]
+            recommended_ids = [all_movie_ids[i] for i in top_indices]
+            
+            # D. Check Match: How many recommended movies were in their 'Liked' list?
+            # (Intersection of Recommendation set AND Liked set)
+            hits = len(set(recommended_ids) & liked_movies)
+            
+            # Calculate Percentage (e.g., 3 hits out of 10 = 30%)
+            precisions.append(hits / k)
+            
+    # Final Calculation
+    avg_precision = np.mean(precisions) if precisions else 0.0
+    success_rate = avg_precision * 100
+    
+    print("="*50)
+    print(f"✅ FINAL ACCURACY REPORT")
+    print("="*50)
+    print(f"Likelihood of User Liking Recommendations:  {success_rate:.2f}%")
+    print("-" * 50)
+    print(f"Interpretation:")
+    print(f"If the system recommends {k} movies, the user will like approx {int(avg_precision * k)} of them.")
+    print("="*50)
+
+# Run the Fixed Evaluation
+evaluate_recommender()
